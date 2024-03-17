@@ -1,7 +1,6 @@
-import platform
-
 import aiohttp
 import asyncio
+import sys
 from datetime import datetime, timedelta
 
 
@@ -27,19 +26,15 @@ async def format_api_response(response):
     for item in response:
         date = item["date"]
         exchange_rate = item["exchangeRate"]
-        eur_curr = None
-        usd_curr = None
         eur_sale_rate = None
         eur_purchase_rate = None
         usd_sale_rate = None
         usd_purchase_rate = None
         for item in exchange_rate:
             if item["currency"] == "EUR":
-                eur_curr = item
                 eur_sale_rate = item["saleRate"]
                 eur_purchase_rate = item["purchaseRate"]
             elif item["currency"] == "USD":
-                usd_curr = item
                 usd_sale_rate = item["saleRate"]
                 usd_purchase_rate = item["purchaseRate"]
                 break
@@ -62,19 +57,27 @@ async def process_url(session, url):
 async def main():
     while True:
         try:
-            user_input = int(
-                input("Enter a range of dates you want to retrive(min:1, max:10): "))
-            if 1 <= user_input <= 10:
-                result = await call_pryvat_bank_api(user_input)
-                print(result)
+            if len(sys.argv) >= 2:
+                user_input = int(sys.argv[1])
+                if 1 <= user_input <= 10:
+                    result = await call_pryvat_bank_api(user_input)
+                    print(result)
+                    break
+                else:
+                    print("Invalid day entered. Please enter number from 1 to 10 ")
             else:
-                print("Invalid day entered. Please enter number from 1 to 10 ")
+                user_input = int(
+                    input("Enter a range of dates you want to retrieve (min: 1, max: 10): "))
+                if 1 <= user_input <= 10:
+                    result = await call_pryvat_bank_api(user_input)
+                    print(result)
+                    break
+                else:
+                    print("Invalid day entered. Please enter a number from 1 to 10 ")
 
         except ValueError:
             print("Invalid day format. Please enter number from 1 to 10 ")
 
 
 if __name__ == "__main__":
-    # if platform.system() == 'Windows':
-    #     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     asyncio.run(main())
